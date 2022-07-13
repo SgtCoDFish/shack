@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: puller-job
+spec:
+  schedule: "*/10 * * * *"
+  successfulJobsHistoryLimit: 50
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: puller
+            image: docker.io/alpine:3.16
+            imagePullPolicy: IfNotPresent
+            command:
+              - /usr/bin/time
+              - wget
+              - -q
+              - -O
+              - $(mktemp)
+              - https://speed.hetzner.de/1GB.bin
+          restartPolicy: OnFailure
