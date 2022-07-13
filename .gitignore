@@ -13,3 +13,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+infrastructure/terraform/terraform.tfvars
+infrastructure/terraform/*.tfstate*
+infrastructure/terraform/.terraform*
