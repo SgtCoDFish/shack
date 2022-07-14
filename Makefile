@@ -87,4 +87,4 @@ $(BINDIR)/downloaded/mkcert@$(MKCERT_VERSION): | $(BINDIR)/downloaded
 
 .PHONY: localcert
 localcert: | $(BINDIR)/tools/mkcert
-	CAROOT=$(BINDIR) $(BINDIR)/tools/mkcert -cert-file $(BINDIR)/cert.pem -key-file $(BINDIR)/key.pem -ecdsa localhost tls-v1-2.badssl.com
+	CAROOT=$(BINDIR) $(BINDIR)/tools/mkcert -cert-file $(BINDIR)/cert.pem -key-file $(BINDIR)/key.pem -ecdsa localhost tls-v1-2.badssl.com go.dev speed.hetzner.de
