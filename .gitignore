@@ -19,3 +19,5 @@ infrastructure/terraform/*.tfstate*
 infrastructure/terraform/.terraform*
 
 _bin
+
+root.crt

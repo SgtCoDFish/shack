@@ -38,17 +38,25 @@ spec:
         secret:
           secretName: shack-server
           optional: false
+      - name: trust-bundle
+        configMap:
+          name: cm-trust-bundle
       containers:
-      - image: gcr.io/jetstack-ashley-davis/shack@sha256:0ba5b4c9161a7e85241153366902aa9892d0eed3fa87ff67290ec9997b765b51
+      - image: quay.io/adjetstack/shack:latest
         name: shack
         volumeMounts:
         - name: mounted-cert
           mountPath: "/etc/shack"
           readOnly: true
+        - name: trust-bundle
+          mountPath: "/etc/trust"
+          readOnly: true
         ports:
         - containerPort: 18121
           name: shack-port
         args:
+        - -address
+        - 0.0.0.0
         - -tls-chain
         - /etc/shack/tls.crt
         - -tls-key

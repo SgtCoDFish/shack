@@ -68,11 +68,11 @@ $(BINDIR)/shack-linux-amd64: $(DEPS) | $(BINDIR)
 .PHONY:
 container:
 	$(CTR) build -t shack:latest -f Containerfile .
-	$(CTR) tag shack:latest eu.gcr.io/jetstack-ashley-davis/shack:latest
+	$(CTR) tag shack:latest quay.io/adjetstack/shack:latest
 
 .PHONY: container-push
-container-push: container
-	$(CTR) push eu.gcr.io/jetstack-ashley-davis/shack:latest
+container-push:
+	$(CTR) push quay.io/adjetstack/shack:latest
 
 .PHONY: tools
 tools: $(BINDIR)/tools/golangci-lint $(BINDIR)/tools/mkcert

@@ -4,21 +4,27 @@ metadata:
   name: puller-job
   namespace: shack
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "*/1 * * * *"
   successfulJobsHistoryLimit: 50
   jobTemplate:
     spec:
       template:
         spec:
+          volumes:
+          - name: trust-bundle
+            configMap:
+              name: cm-trust-bundle
           containers:
           - name: puller
             image: docker.io/alpine:3.16
             imagePullPolicy: IfNotPresent
+            volumeMounts:
+            - name: trust-bundle
+              mountPath: "/etc/trust"
+              readOnly: true
             command:
-              - /usr/bin/time
-              - wget
-              - -q
-              - -O
-              - $(mktemp)
-              - https://speed.hetzner.de/1GB.bin
+              - /bin/sh
+              - -c
+              - apk add curl ; curl -L -o /tmp/out --cacert /etc/trust/trust.pem --proxy-cacert /etc/trust/trust.pem --proxy https://shack.shack.svc.cluster.local https://speed.hetzner.de/1GB.bin
+                #- apk add curl ; curl -L -o /tmp/out https://speed.hetzner.de/1GB.bin
           restartPolicy: OnFailure
