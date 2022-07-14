@@ -16,15 +16,15 @@ spec:
               name: cm-trust-bundle
           containers:
           - name: puller
-            image: docker.io/alpine:3.16
+            image: quay.io/adjetstack/curlpine:latest
             imagePullPolicy: IfNotPresent
             volumeMounts:
             - name: trust-bundle
               mountPath: "/etc/trust"
               readOnly: true
             command:
-              - /bin/sh
-              - -c
-              - apk add curl ; curl -L -o /tmp/out --cacert /etc/trust/trust.pem --proxy-cacert /etc/trust/trust.pem --proxy https://shack.shack.svc.cluster.local https://speed.hetzner.de/1GB.bin
+              - /usr/bin/time
+              - curl -L -o /tmp/out --cacert /etc/trust/trust.pem --proxy-cacert /etc/trust/trust.pem --proxy https://shack.shack.svc.cluster.local https://go.dev/dl/go1.18.4.linux-amd64.tar.gz
+                # - apk add curl ; curl -L -o /tmp/out --cacert /etc/trust/trust.pem --proxy-cacert /etc/trust/trust.pem --proxy https://shack.shack.svc.cluster.local https://speed.hetzner.de/1GB.bin
                 #- apk add curl ; curl -L -o /tmp/out https://speed.hetzner.de/1GB.bin
           restartPolicy: OnFailure

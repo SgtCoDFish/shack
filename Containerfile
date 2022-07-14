@@ -7,6 +7,8 @@ RUN make binaries
 
 FROM docker.io/debian:bullseye as image
 
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl
+
 COPY --from=build /build/_bin/shack /shack
 
 ENTRYPOINT ["/shack"]

@@ -1,3 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: shack-role
+  namespace: shack
+rules:
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - "secrets"
+  verbs:
+  - get
+  - watch
+  - list
+  # TODO: should restrict which secrets we can access here
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -75,3 +100,17 @@ spec:
   - protocol: TCP
     port: 443
     targetPort: shack-port
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: shack-rb
+  namespace: shack
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: shack
+roleRef:
+  kind: Role
+  name: shack-role
+  apiGroup: rbac.authorization.k8s.io

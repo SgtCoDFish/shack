@@ -65,7 +65,7 @@ $(BINDIR)/shack: $(DEPS) | $(BINDIR)
 $(BINDIR)/shack-linux-amd64: $(DEPS) | $(BINDIR)
 	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -o $@ cmd/shack/main.go
 
-.PHONY:
+.PHONY: container
 container:
 	$(CTR) build -t shack:latest -f Containerfile .
 	$(CTR) tag shack:latest quay.io/adjetstack/shack:latest
@@ -73,6 +73,12 @@ container:
 .PHONY: container-push
 container-push:
 	$(CTR) push quay.io/adjetstack/shack:latest
+
+.PHONY: curlpine-container-push
+curlpine-container-push:
+	$(CTR) build -t curlpine:latest -f hack/Containerfile.curlpine .
+	$(CTR) tag curlpine:latest quay.io/adjetstack/curlpine:latest
+	$(CTR) push quay.io/adjetstack/curlpine:latest
 
 .PHONY: tools
 tools: $(BINDIR)/tools/golangci-lint $(BINDIR)/tools/mkcert
