@@ -1,0 +1,50 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: root-ca-issuer
+  namespace: shack
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shack-root-ca
+  namespace: shack
+spec:
+  isCA: true
+  commonName: shack-root
+  secretName: shack-root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: root-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: intermediate-ca-issuer
+  namespace: shack
+spec:
+  ca:
+    secretName: shack-root-secret
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shack-intermediate-ca
+  namespace: shack
+spec:
+  isCA: true
+  commonName: shack-intermediate
+  secretName: shack-intermediate-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: intermediate-ca-issuer
+    kind: Issuer
+    group: cert-manager.io

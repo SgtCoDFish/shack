@@ -27,6 +27,8 @@ var (
 	tlsKeyFile   = flag.String("tls-key", "", "file containing TLS private key")
 
 	cacheDir = flag.String("cache-dir", "/tmp/shack-cache", "directory in which to cache responses")
+
+	useCertManager = flag.Bool("cert-manager", false, "if set, provision certificates using cert-manager")
 )
 
 // These headers shouldn't be set on a request to upstream
@@ -52,6 +54,8 @@ type proxyServer struct {
 	logger *log.Logger
 
 	cache *shack.CacheDir
+
+	certificateProvisioner shack.CertificateProvisioner
 }
 
 // manualWriteHTTPResponse writes a plaintext HTTP response to the given connection; this is useful after an HTTP connection
@@ -140,16 +144,7 @@ func (p *proxyServer) handleConnect(hijackableWriter http.ResponseWriter, origin
 	// this is what we want to intercept
 
 	tlsServerConn := tls.Server(clientConnection, &tls.Config{
-		GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			// TODO: get cert based on hello.ServerName
-
-			tlsCert, err := tls.LoadX509KeyPair(*tlsChainFile, *tlsKeyFile)
-			if err != nil {
-				return nil, err
-			}
-
-			return &tlsCert, nil
-		},
+		GetCertificate: p.certificateProvisioner.Retrieve,
 	})
 
 	if err := tlsServerConn.Handshake(); err != nil {
@@ -180,7 +175,7 @@ func (p *proxyServer) handleConnect(hijackableWriter http.ResponseWriter, origin
 	removeHopByHopHeaders(mitmRequest.Header)
 
 	if p.cache.IsInCache(mitmRequest) {
-		p.logger.Printf("request is cached, returning cached body")
+		p.logger.Printf("returning cached body")
 
 		cacheEntry, cacheEntryMetadata, err := p.cache.CacheEntryReader(mitmRequest)
 		if err != nil {
@@ -308,6 +303,29 @@ func main() {
 		logger.Fatalf("couldn't ensure cache dir: %s", err.Error())
 	}
 
+	var certificateProvisioner shack.CertificateProvisioner
+	var provisionerError error
+
+	if *useCertManager {
+		namespace := "shack"
+		issuerName := "intermediate-ca-issuer"
+
+		logger.Printf("using cert-manager provisioner with in cluster config and issuer %s/%s", namespace, issuerName)
+		certificateProvisioner, provisionerError = shack.NewCertManagerProvisioner(namespace, issuerName)
+	} else {
+		if *tlsChainFile == "" && *tlsKeyFile == "" {
+			logger.Fatalf("using a static certificate provisioner but TLS is not configured")
+		}
+
+		logger.Printf("using static certificate provisioner with the same TLS cert used by the server")
+
+		certificateProvisioner, provisionerError = shack.NewStaticProvisioner(*tlsChainFile, *tlsKeyFile)
+	}
+
+	if provisionerError != nil {
+		logger.Fatalf("failed to initialise certificate provisioner: %s", provisionerError.Error())
+	}
+
 	logger.Printf("caching in %q", cache.Directory())
 
 	address := fmt.Sprintf("%s:%d", *address, *port)
@@ -325,6 +343,8 @@ func main() {
 		Handler: &proxyServer{
 			cache:  cache,
 			logger: logger,
+
+			certificateProvisioner: certificateProvisioner,
 		},
 
 		// set TLSNextProto to an empty map, which disables HTTP/2

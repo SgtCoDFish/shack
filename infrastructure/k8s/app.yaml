@@ -1,0 +1,69 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shack-server-cert
+  namespace: shack
+spec:
+  isCA: false
+  commonName: shack
+  secretName: shack-server
+  duration: 8760h
+  dnsNames: ["ashley-davis-gcp.jetstacker.net", "shack.shack.svc.cluster.local", "shack.shack"]
+  usages: ["digital signature", "key encipherment", "client auth", "server auth"]
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: intermediate-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shack-deployment
+  namespace: shack
+spec:
+  selector:
+    matchLabels:
+      app: shack-svc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: shack-svc
+    spec:
+      volumes:
+      - name: mounted-cert
+        secret:
+          secretName: shack-server
+          optional: false
+      containers:
+      - image: gcr.io/jetstack-ashley-davis/shack@sha256:0ba5b4c9161a7e85241153366902aa9892d0eed3fa87ff67290ec9997b765b51
+        name: shack
+        volumeMounts:
+        - name: mounted-cert
+          mountPath: "/etc/shack"
+          readOnly: true
+        ports:
+        - containerPort: 18121
+          name: shack-port
+        args:
+        - -tls-chain
+        - /etc/shack/tls.crt
+        - -tls-key
+        - /etc/shack/tls.key
+        - -cert-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shack
+  namespace: shack
+spec:
+  selector:
+    app: shack-svc
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: shack-port

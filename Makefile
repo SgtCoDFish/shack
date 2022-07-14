@@ -65,6 +65,15 @@ $(BINDIR)/shack: $(DEPS) | $(BINDIR)
 $(BINDIR)/shack-linux-amd64: $(DEPS) | $(BINDIR)
 	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -o $@ cmd/shack/main.go
 
+.PHONY:
+container:
+	$(CTR) build -t shack:latest -f Containerfile .
+	$(CTR) tag shack:latest eu.gcr.io/jetstack-ashley-davis/shack:latest
+
+.PHONY: container-push
+container-push: container
+	$(CTR) push eu.gcr.io/jetstack-ashley-davis/shack:latest
+
 .PHONY: tools
 tools: $(BINDIR)/tools/golangci-lint $(BINDIR)/tools/mkcert
 
