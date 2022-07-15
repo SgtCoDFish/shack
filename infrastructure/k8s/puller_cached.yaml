@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: puller-job-cached
+  namespace: shack
+spec:
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes:
+          - name: trust-bundle
+            configMap:
+              name: cm-trust-bundle
+          containers:
+          - name: puller-cached
+            image: quay.io/adjetstack/curlpine:latest
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+            - name: trust-bundle
+              mountPath: "/etc/trust"
+              readOnly: true
+            command:
+            - /usr/bin/time
+            - curl
+            - -L
+            - -o
+            - /tmp/1GB_cached.bin
+            - --cacert
+            - /etc/trust/trust.pem
+            - --proxy-cacert
+            - /etc/trust/trust.pem
+            - --proxy
+            - https://shack.shack.svc.cluster.local
+            - https://speed.hetzner.de/1GB.bin
+          restartPolicy: Never
