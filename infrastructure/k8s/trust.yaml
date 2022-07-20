@@ -5,18 +5,9 @@ metadata:
   namespace: shack
 spec:
   sources:
-  # note: this is hardcoded for ease of demoing. Obviously this isn't the way to go for an actual deployment
-  - inLine: |
-      -----BEGIN CERTIFICATE-----
-      MIIBajCCARCgAwIBAgIQGJ6NFfFI6aoiRmkdlhwyDTAKBggqhkjOPQQDAjAVMRMw
-      EQYDVQQDEwpzaGFjay1yb290MB4XDTIyMDcxNDE1MjUwNFoXDTIyMTAxMjE1MjUw
-      NFowFTETMBEGA1UEAxMKc2hhY2stcm9vdDBZMBMGByqGSM49AgEGCCqGSM49AwEH
-      A0IABOHrDF6awfksVOIsHjSZVDRY+tVEoy6sJTyXJeIVWf4JVZ+rETEHPyBzoH4Y
-      WPITk/0xmIEh6X86IdKtGX2/ryOjQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMB
-      Af8EBTADAQH/MB0GA1UdDgQWBBQI/bCHhlAwnDrLw5FtfvbVuWQN0DAKBggqhkjO
-      PQQDAgNIADBFAiAbQg3B0ZmhRslsQADXLuMRIAZx+nX9oG21fCw7DO1eSAIhAI2d
-      1WNF8+iukddr3NpSmZgh5O04URXjxS4yi6m1bST9
-      -----END CERTIFICATE-----
+  - configMap:
+      name: "shack-root-cm"
+      key: "root.crt"
   target:
     configMap:
       key: trust.pem

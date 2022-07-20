@@ -21,3 +21,4 @@ infrastructure/terraform/.terraform*
 _bin
 
 root.crt
+shack-root-cert.pem

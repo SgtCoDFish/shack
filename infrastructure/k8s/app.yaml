@@ -17,11 +17,10 @@ rules:
   - ""
   resources:
   - "secrets"
-  verbs:
+  verbs: # TODO: should restrict which secrets we can access here
   - get
   - watch
   - list
-  # TODO: should restrict which secrets we can access here
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -33,7 +32,7 @@ spec:
   commonName: shack
   secretName: shack-server
   duration: 8760h
-  dnsNames: ["ashley-davis-gcp.jetstacker.net", "shack.shack.svc.cluster.local", "shack.shack"]
+  dnsNames: ["shack.shack.svc.cluster.local", "shack.shack"]
   usages: ["digital signature", "key encipherment", "client auth", "server auth"]
   privateKey:
     algorithm: ECDSA
@@ -67,26 +66,26 @@ spec:
         configMap:
           name: cm-trust-bundle
       containers:
-      - image: quay.io/adjetstack/shack:latest
-        name: shack
-        volumeMounts:
-        - name: mounted-cert
-          mountPath: "/etc/shack"
-          readOnly: true
-        - name: trust-bundle
-          mountPath: "/etc/trust"
-          readOnly: true
-        ports:
-        - containerPort: 18121
-          name: shack-port
-        args:
-        - -address
-        - 0.0.0.0
-        - -tls-chain
-        - /etc/shack/tls.crt
-        - -tls-key
-        - /etc/shack/tls.key
-        - -cert-manager
+        - image: quay.io/adjetstack/shack:latest # TODO: shouldn't use latest
+          name: shack
+          volumeMounts:
+          - name: mounted-cert
+            mountPath: "/etc/shack"
+            readOnly: true
+          - name: trust-bundle
+            mountPath: "/etc/trust"
+            readOnly: true
+          ports:
+          - containerPort: 18121
+            name: shack-port
+          args:
+          - -address
+          - 0.0.0.0
+          - -tls-chain
+          - /etc/shack/tls.crt
+          - -tls-key
+          - /etc/shack/tls.key
+          - -cert-manager
 ---
 apiVersion: v1
 kind: Service
